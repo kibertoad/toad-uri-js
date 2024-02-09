@@ -197,7 +197,7 @@ Or you can load just what you need using named exports:
 
 ### Breaking changes from 4.x
 
-This is the first version that was forked from the original uri-js. Library no longer officially supports Node < 16.x (although it may still work - do your own testing), and a different solution for CJS/ESM publishing is used now.
+This is the first version that was forked from the original uri-js. Library no longer officially supports Node < 16.x (although it may still work - please test on your own use-cases if necessary), and a different solution for CJS/ESM publishing is used now.
 
 ### Breaking changes from 3.x
 
