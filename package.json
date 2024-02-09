@@ -30,7 +30,7 @@
     "test": "vitest --coverage",
     "lint": "biome lint src tests biome.json",
     "lint:fix": "biome check --apply src tests biome.json",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build:release"
   },
   "repository": {
     "type": "git",
