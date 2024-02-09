@@ -34,523 +34,629 @@
  * or implied, of Gary Court.
  */
 
-import URI_PROTOCOL from "./regexps-uri";
-import IRI_PROTOCOL from "./regexps-iri";
-import punycode from "punycode";
-import { toUpperCase, typeOf, assign } from "./util";
+import punycode from 'punycode'
+import IRI_PROTOCOL from './regexps-iri'
+import URI_PROTOCOL from './regexps-uri'
+import { assign, toUpperCase, typeOf } from './util'
 
 export interface URIComponents {
-	scheme?:string;
-	userinfo?:string;
-	host?:string;
-	port?:number|string;
-	path?:string;
-	query?:string;
-	fragment?:string;
-	reference?:string;
-	error?:string;
+  scheme?: string
+  userinfo?: string
+  host?: string
+  port?: number | string
+  path?: string
+  query?: string
+  fragment?: string
+  reference?: string
+  error?: string
 }
 
 export interface URIOptions {
-	scheme?:string;
-	reference?:string;
-	tolerant?:boolean;
-	absolutePath?:boolean;
-	iri?:boolean;
-	unicodeSupport?:boolean;
-	domainHost?:boolean;
+  scheme?: string
+  reference?: string
+  tolerant?: boolean
+  absolutePath?: boolean
+  iri?: boolean
+  unicodeSupport?: boolean
+  domainHost?: boolean
 }
 
-export interface URISchemeHandler<Components extends URIComponents = URIComponents, Options extends URIOptions = URIOptions, ParentComponents extends URIComponents = URIComponents> {
-	scheme:string;
-	parse(components:ParentComponents, options:Options):Components;
-	serialize(components:Components, options:Options):ParentComponents;
-	unicodeSupport?:boolean;
-	domainHost?:boolean;
-	absolutePath?:boolean;
+export interface URISchemeHandler<
+  Components extends URIComponents = URIComponents,
+  Options extends URIOptions = URIOptions,
+  ParentComponents extends URIComponents = URIComponents,
+> {
+  scheme: string
+  parse(components: ParentComponents, options: Options): Components
+  serialize(components: Components, options: Options): ParentComponents
+  unicodeSupport?: boolean
+  domainHost?: boolean
+  absolutePath?: boolean
 }
 
 export interface URIRegExps {
-	NOT_SCHEME : RegExp,
-	NOT_USERINFO : RegExp,
-	NOT_HOST : RegExp,
-	NOT_PATH : RegExp,
-	NOT_PATH_NOSCHEME : RegExp,
-	NOT_QUERY : RegExp,
-	NOT_FRAGMENT : RegExp,
-	ESCAPE : RegExp,
-	UNRESERVED : RegExp,
-	OTHER_CHARS : RegExp,
-	PCT_ENCODED : RegExp,
-	IPV4ADDRESS : RegExp,
-	IPV6ADDRESS : RegExp,
+  NOT_SCHEME: RegExp
+  NOT_USERINFO: RegExp
+  NOT_HOST: RegExp
+  NOT_PATH: RegExp
+  NOT_PATH_NOSCHEME: RegExp
+  NOT_QUERY: RegExp
+  NOT_FRAGMENT: RegExp
+  ESCAPE: RegExp
+  UNRESERVED: RegExp
+  OTHER_CHARS: RegExp
+  PCT_ENCODED: RegExp
+  IPV4ADDRESS: RegExp
+  IPV6ADDRESS: RegExp
 }
 
-export const SCHEMES:{[scheme:string]:URISchemeHandler} = {};
+export const SCHEMES: { [scheme: string]: URISchemeHandler } = {}
 
-export function pctEncChar(chr:string):string {
-	const c = chr.charCodeAt(0);
-	let e:string;
+export function pctEncChar(chr: string): string {
+  const c = chr.charCodeAt(0)
+  let e: string
 
-	if (c < 16) e = "%0" + c.toString(16).toUpperCase();
-	else if (c < 128) e = "%" + c.toString(16).toUpperCase();
-	else if (c < 2048) e = "%" + ((c >> 6) | 192).toString(16).toUpperCase() + "%" + ((c & 63) | 128).toString(16).toUpperCase();
-	else e = "%" + ((c >> 12) | 224).toString(16).toUpperCase() + "%" + (((c >> 6) & 63) | 128).toString(16).toUpperCase() + "%" + ((c & 63) | 128).toString(16).toUpperCase();
+  if (c < 16) e = '%0' + c.toString(16).toUpperCase()
+  else if (c < 128) e = '%' + c.toString(16).toUpperCase()
+  else if (c < 2048)
+    e =
+      '%' +
+      ((c >> 6) | 192).toString(16).toUpperCase() +
+      '%' +
+      ((c & 63) | 128).toString(16).toUpperCase()
+  else
+    e =
+      '%' +
+      ((c >> 12) | 224).toString(16).toUpperCase() +
+      '%' +
+      (((c >> 6) & 63) | 128).toString(16).toUpperCase() +
+      '%' +
+      ((c & 63) | 128).toString(16).toUpperCase()
 
-	return e;
+  return e
 }
 
-export function pctDecChars(str:string):string {
-	let newStr = "";
-	let i = 0;
-	const il = str.length;
+export function pctDecChars(str: string): string {
+  let newStr = ''
+  let i = 0
+  const il = str.length
 
-	while (i < il) {
-		const c = parseInt(str.substr(i + 1, 2), 16);
+  while (i < il) {
+    const c = parseInt(str.substr(i + 1, 2), 16)
 
-		if (c < 128) {
-			newStr += String.fromCharCode(c);
-			i += 3;
-		}
-		else if (c >= 194 && c < 224) {
-			if ((il - i) >= 6) {
-				const c2 = parseInt(str.substr(i + 4, 2), 16);
-				newStr += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
-			} else {
-				newStr += str.substr(i, 6);
-			}
-			i += 6;
-		}
-		else if (c >= 224) {
-			if ((il - i) >= 9) {
-				const c2 = parseInt(str.substr(i + 4, 2), 16);
-				const c3 = parseInt(str.substr(i + 7, 2), 16);
-				newStr += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
-			} else {
-				newStr += str.substr(i, 9);
-			}
-			i += 9;
-		}
-		else {
-			newStr += str.substr(i, 3);
-			i += 3;
-		}
-	}
+    if (c < 128) {
+      newStr += String.fromCharCode(c)
+      i += 3
+    } else if (c >= 194 && c < 224) {
+      if (il - i >= 6) {
+        const c2 = parseInt(str.substr(i + 4, 2), 16)
+        newStr += String.fromCharCode(((c & 31) << 6) | (c2 & 63))
+      } else {
+        newStr += str.substr(i, 6)
+      }
+      i += 6
+    } else if (c >= 224) {
+      if (il - i >= 9) {
+        const c2 = parseInt(str.substr(i + 4, 2), 16)
+        const c3 = parseInt(str.substr(i + 7, 2), 16)
+        newStr += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63))
+      } else {
+        newStr += str.substr(i, 9)
+      }
+      i += 9
+    } else {
+      newStr += str.substr(i, 3)
+      i += 3
+    }
+  }
 
-	return newStr;
+  return newStr
 }
 
-function _normalizeComponentEncoding(components:URIComponents, protocol:URIRegExps) {
-	function decodeUnreserved(str:string):string {
-		const decStr = pctDecChars(str);
-		return (!decStr.match(protocol.UNRESERVED) ? str : decStr);
-	}
+function _normalizeComponentEncoding(components: URIComponents, protocol: URIRegExps) {
+  function decodeUnreserved(str: string): string {
+    const decStr = pctDecChars(str)
+    return !decStr.match(protocol.UNRESERVED) ? str : decStr
+  }
 
-	if (components.scheme) components.scheme = String(components.scheme).replace(protocol.PCT_ENCODED, decodeUnreserved).toLowerCase().replace(protocol.NOT_SCHEME, "");
-	if (components.userinfo !== undefined) components.userinfo = String(components.userinfo).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_USERINFO, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase);
-	if (components.host !== undefined) components.host = String(components.host).replace(protocol.PCT_ENCODED, decodeUnreserved).toLowerCase().replace(protocol.NOT_HOST, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase);
-	if (components.path !== undefined) components.path = String(components.path).replace(protocol.PCT_ENCODED, decodeUnreserved).replace((components.scheme ? protocol.NOT_PATH : protocol.NOT_PATH_NOSCHEME), pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase);
-	if (components.query !== undefined) components.query = String(components.query).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_QUERY, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase);
-	if (components.fragment !== undefined) components.fragment = String(components.fragment).replace(protocol.PCT_ENCODED, decodeUnreserved).replace(protocol.NOT_FRAGMENT, pctEncChar).replace(protocol.PCT_ENCODED, toUpperCase);
+  if (components.scheme)
+    components.scheme = String(components.scheme)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .toLowerCase()
+      .replace(protocol.NOT_SCHEME, '')
+  if (components.userinfo !== undefined)
+    components.userinfo = String(components.userinfo)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .replace(protocol.NOT_USERINFO, pctEncChar)
+      .replace(protocol.PCT_ENCODED, toUpperCase)
+  if (components.host !== undefined)
+    components.host = String(components.host)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .toLowerCase()
+      .replace(protocol.NOT_HOST, pctEncChar)
+      .replace(protocol.PCT_ENCODED, toUpperCase)
+  if (components.path !== undefined)
+    components.path = String(components.path)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .replace(components.scheme ? protocol.NOT_PATH : protocol.NOT_PATH_NOSCHEME, pctEncChar)
+      .replace(protocol.PCT_ENCODED, toUpperCase)
+  if (components.query !== undefined)
+    components.query = String(components.query)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .replace(protocol.NOT_QUERY, pctEncChar)
+      .replace(protocol.PCT_ENCODED, toUpperCase)
+  if (components.fragment !== undefined)
+    components.fragment = String(components.fragment)
+      .replace(protocol.PCT_ENCODED, decodeUnreserved)
+      .replace(protocol.NOT_FRAGMENT, pctEncChar)
+      .replace(protocol.PCT_ENCODED, toUpperCase)
 
-	return components;
-};
-
-function _stripLeadingZeros(str:string):string {
-	return str.replace(/^0*(.*)/, "$1") || "0";
+  return components
 }
 
-function _normalizeIPv4(host:string, protocol:URIRegExps):string {
-	const matches = host.match(protocol.IPV4ADDRESS) || [];
-	const [, address] = matches;
-	
-	if (address) {
-		return address.split(".").map(_stripLeadingZeros).join(".");
-	} else {
-		return host;
-	}
+function _stripLeadingZeros(str: string): string {
+  return str.replace(/^0*(.*)/, '$1') || '0'
 }
 
-function _normalizeIPv6(host:string, protocol:URIRegExps):string {
-	const matches = host.match(protocol.IPV6ADDRESS) || [];
-	const [, address, zone] = matches;
+function _normalizeIPv4(host: string, protocol: URIRegExps): string {
+  const matches = host.match(protocol.IPV4ADDRESS) || []
+  const [, address] = matches
 
-	if (address) {
-		const [last, first] = address.toLowerCase().split('::').reverse();
-		const firstFields = first ? first.split(":").map(_stripLeadingZeros) : [];
-		const lastFields = last.split(":").map(_stripLeadingZeros);
-		const isLastFieldIPv4Address = protocol.IPV4ADDRESS.test(lastFields[lastFields.length - 1]);
-		const fieldCount = isLastFieldIPv4Address ? 7 : 8;
-		const lastFieldsStart = lastFields.length - fieldCount;
-		const fields = Array<string>(fieldCount);
-
-		for (let x = 0; x < fieldCount; ++x) {
-			fields[x] = firstFields[x] || lastFields[lastFieldsStart + x] || '';
-		}
-
-		if (isLastFieldIPv4Address) {
-			fields[fieldCount - 1] = _normalizeIPv4(fields[fieldCount - 1], protocol);
-		}
-
-		const allZeroFields = fields.reduce<Array<{index:number,length:number}>>((acc, field, index) => {
-			if (!field || field === "0") {
-				const lastLongest = acc[acc.length - 1];
-				if (lastLongest && lastLongest.index + lastLongest.length === index) {
-					lastLongest.length++;
-				} else {
-					acc.push({ index, length : 1 });
-				}
-			}
-			return acc;
-		}, []);
-
-		const longestZeroFields = allZeroFields.sort((a, b) => b.length - a.length)[0];
-
-		let newHost:string;
-		if (longestZeroFields && longestZeroFields.length > 1) {
-			const newFirst = fields.slice(0, longestZeroFields.index) ;
-			const newLast = fields.slice(longestZeroFields.index + longestZeroFields.length);
-			newHost = newFirst.join(":") + "::" + newLast.join(":");
-		} else {
-			newHost = fields.join(":");
-		}
-
-		if (zone) {
-			newHost += "%" + zone;
-		}
-
-		return newHost;
-	} else {
-		return host;
-	}
+  if (address) {
+    return address.split('.').map(_stripLeadingZeros).join('.')
+  } else {
+    return host
+  }
 }
 
-const URI_PARSE = /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i;
-const NO_MATCH_IS_UNDEFINED = (<RegExpMatchArray>("").match(/(){0}/))[1] === undefined;
+function _normalizeIPv6(host: string, protocol: URIRegExps): string {
+  const matches = host.match(protocol.IPV6ADDRESS) || []
+  const [, address, zone] = matches
 
-export function parse(uriString:string, options:URIOptions = {}):URIComponents {
-	const components:URIComponents = {};
-	const protocol = (options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL);
+  if (address) {
+    const [last, first] = address.toLowerCase().split('::').reverse()
+    const firstFields = first ? first.split(':').map(_stripLeadingZeros) : []
+    const lastFields = last.split(':').map(_stripLeadingZeros)
+    const isLastFieldIPv4Address = protocol.IPV4ADDRESS.test(lastFields[lastFields.length - 1])
+    const fieldCount = isLastFieldIPv4Address ? 7 : 8
+    const lastFieldsStart = lastFields.length - fieldCount
+    const fields = Array<string>(fieldCount)
 
-	if (options.reference === "suffix") uriString = (options.scheme ? options.scheme + ":" : "") + "//" + uriString;
+    for (let x = 0; x < fieldCount; ++x) {
+      fields[x] = firstFields[x] || lastFields[lastFieldsStart + x] || ''
+    }
 
-	const matches = uriString.match(URI_PARSE);
+    if (isLastFieldIPv4Address) {
+      fields[fieldCount - 1] = _normalizeIPv4(fields[fieldCount - 1], protocol)
+    }
 
-	if (matches) {
-		if (NO_MATCH_IS_UNDEFINED) {
-			//store each component
-			components.scheme = matches[1];
-			components.userinfo = matches[3];
-			components.host = matches[4];
-			components.port = parseInt(matches[5], 10);
-			components.path = matches[6] || "";
-			components.query = matches[7];
-			components.fragment = matches[8];
+    const allZeroFields = fields.reduce<Array<{ index: number; length: number }>>(
+      (acc, field, index) => {
+        if (!field || field === '0') {
+          const lastLongest = acc[acc.length - 1]
+          if (lastLongest && lastLongest.index + lastLongest.length === index) {
+            lastLongest.length++
+          } else {
+            acc.push({ index, length: 1 })
+          }
+        }
+        return acc
+      },
+      [],
+    )
 
-			//fix port number
-			if (isNaN(components.port)) {
-				components.port = matches[5];
-			}
-		} else {  //IE FIX for improper RegExp matching
-			//store each component
-			components.scheme = matches[1] || undefined;
-			components.userinfo = (uriString.indexOf("@") !== -1 ? matches[3] : undefined);
-			components.host = (uriString.indexOf("//") !== -1 ? matches[4] : undefined);
-			components.port = parseInt(matches[5], 10);
-			components.path = matches[6] || "";
-			components.query = (uriString.indexOf("?") !== -1 ? matches[7] : undefined);
-			components.fragment = (uriString.indexOf("#") !== -1 ? matches[8] : undefined);
+    const longestZeroFields = allZeroFields.sort((a, b) => b.length - a.length)[0]
 
-			//fix port number
-			if (isNaN(components.port)) {
-				components.port = (uriString.match(/\/\/(?:.|\n)*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined);
-			}
-		}
+    let newHost: string
+    if (longestZeroFields && longestZeroFields.length > 1) {
+      const newFirst = fields.slice(0, longestZeroFields.index)
+      const newLast = fields.slice(longestZeroFields.index + longestZeroFields.length)
+      newHost = newFirst.join(':') + '::' + newLast.join(':')
+    } else {
+      newHost = fields.join(':')
+    }
 
-		if (components.host) {
-			//normalize IP hosts
-			components.host = _normalizeIPv6(_normalizeIPv4(components.host, protocol), protocol);
-		}
+    if (zone) {
+      newHost += '%' + zone
+    }
 
-		//determine reference type
-		if (components.scheme === undefined && components.userinfo === undefined && components.host === undefined && components.port === undefined && !components.path && components.query === undefined) {
-			components.reference = "same-document";
-		} else if (components.scheme === undefined) {
-			components.reference = "relative";
-		} else if (components.fragment === undefined) {
-			components.reference = "absolute";
-		} else {
-			components.reference = "uri";
-		}
+    return newHost
+  } else {
+    return host
+  }
+}
 
-		//check for reference errors
-		if (options.reference && options.reference !== "suffix" && options.reference !== components.reference) {
-			components.error = components.error || "URI is not a " + options.reference + " reference.";
-		}
+const URI_PARSE =
+  /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+const NO_MATCH_IS_UNDEFINED = (<RegExpMatchArray>''.match(/(){0}/))[1] === undefined
 
-		//find scheme handler
-		const schemeHandler = SCHEMES[(options.scheme || components.scheme || "").toLowerCase()];
+export function parse(uriString: string, options: URIOptions = {}): URIComponents {
+  const components: URIComponents = {}
+  const protocol = options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL
 
-		//check if scheme can't handle IRIs
-		if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
-			//if host component is a domain name
-			if (components.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost))) {
-				//convert Unicode IDN -> ASCII IDN
-				try {
-					components.host = punycode.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase());
-				} catch (e) {
-					components.error = components.error || "Host's domain name can not be converted to ASCII via punycode: " + e;
-				}
-			}
-			//convert IRI -> URI
-			_normalizeComponentEncoding(components, URI_PROTOCOL);
-		} else {
-			//normalize encodings
-			_normalizeComponentEncoding(components, protocol);
-		}
+  if (options.reference === 'suffix')
+    uriString = (options.scheme ? options.scheme + ':' : '') + '//' + uriString
 
-		//perform scheme specific parsing
-		if (schemeHandler && schemeHandler.parse) {
-			schemeHandler.parse(components, options);
-		}
-	} else {
-		components.error = components.error || "URI can not be parsed.";
-	}
+  const matches = uriString.match(URI_PARSE)
 
-	return components;
-};
+  if (matches) {
+    if (NO_MATCH_IS_UNDEFINED) {
+      //store each component
+      components.scheme = matches[1]
+      components.userinfo = matches[3]
+      components.host = matches[4]
+      components.port = parseInt(matches[5], 10)
+      components.path = matches[6] || ''
+      components.query = matches[7]
+      components.fragment = matches[8]
 
-function _recomposeAuthority(components:URIComponents, options:URIOptions):string|undefined {
-	const protocol = (options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL);
-	const uriTokens:Array<string> = [];
+      //fix port number
+      if (isNaN(components.port)) {
+        components.port = matches[5]
+      }
+    } else {
+      //IE FIX for improper RegExp matching
+      //store each component
+      components.scheme = matches[1] || undefined
+      components.userinfo = uriString.indexOf('@') !== -1 ? matches[3] : undefined
+      components.host = uriString.indexOf('//') !== -1 ? matches[4] : undefined
+      components.port = parseInt(matches[5], 10)
+      components.path = matches[6] || ''
+      components.query = uriString.indexOf('?') !== -1 ? matches[7] : undefined
+      components.fragment = uriString.indexOf('#') !== -1 ? matches[8] : undefined
 
-	if (components.userinfo !== undefined) {
-		uriTokens.push(components.userinfo);
-		uriTokens.push("@");
-	}
+      //fix port number
+      if (isNaN(components.port)) {
+        components.port = uriString.match(/\/\/(?:.|\n)*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined
+      }
+    }
 
-	if (components.host !== undefined) {
-		//normalize IP hosts, add brackets and escape zone separator for IPv6
-		uriTokens.push(_normalizeIPv6(_normalizeIPv4(String(components.host), protocol), protocol).replace(protocol.IPV6ADDRESS, (_, $1, $2) => "[" + $1 + ($2 ? "%25" + $2 : "") + "]"));
-	}
+    if (components.host) {
+      //normalize IP hosts
+      components.host = _normalizeIPv6(_normalizeIPv4(components.host, protocol), protocol)
+    }
 
-	if (typeof components.port === "number" || typeof components.port === "string") {
-		uriTokens.push(":");
-		uriTokens.push(String(components.port));
-	}
+    //determine reference type
+    if (
+      components.scheme === undefined &&
+      components.userinfo === undefined &&
+      components.host === undefined &&
+      components.port === undefined &&
+      !components.path &&
+      components.query === undefined
+    ) {
+      components.reference = 'same-document'
+    } else if (components.scheme === undefined) {
+      components.reference = 'relative'
+    } else if (components.fragment === undefined) {
+      components.reference = 'absolute'
+    } else {
+      components.reference = 'uri'
+    }
 
-	return uriTokens.length ? uriTokens.join("") : undefined;
-};
+    //check for reference errors
+    if (
+      options.reference &&
+      options.reference !== 'suffix' &&
+      options.reference !== components.reference
+    ) {
+      components.error = components.error || 'URI is not a ' + options.reference + ' reference.'
+    }
 
-const RDS1 = /^\.\.?\//;
-const RDS2 = /^\/\.(\/|$)/;
-const RDS3 = /^\/\.\.(\/|$)/;
-const RDS4 = /^\.\.?$/;
-const RDS5 = /^\/?(?:.|\n)*?(?=\/|$)/;
+    //find scheme handler
+    const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
 
-export function removeDotSegments(input:string):string {
-	const output:Array<string> = [];
+    //check if scheme can't handle IRIs
+    if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
+      //if host component is a domain name
+      if (components.host && (options.domainHost || (schemeHandler && schemeHandler.domainHost))) {
+        //convert Unicode IDN -> ASCII IDN
+        try {
+          components.host = punycode.toASCII(
+            components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase(),
+          )
+        } catch (e) {
+          components.error =
+            components.error ||
+            "Host's domain name can not be converted to ASCII via punycode: " + e
+        }
+      }
+      //convert IRI -> URI
+      _normalizeComponentEncoding(components, URI_PROTOCOL)
+    } else {
+      //normalize encodings
+      _normalizeComponentEncoding(components, protocol)
+    }
 
-	while (input.length) {
-		if (input.match(RDS1)) {
-			input = input.replace(RDS1, "");
-		} else if (input.match(RDS2)) {
-			input = input.replace(RDS2, "/");
-		} else if (input.match(RDS3)) {
-			input = input.replace(RDS3, "/");
-			output.pop();
-		} else if (input === "." || input === "..") {
-			input = "";
-		} else {
-			const im = input.match(RDS5);
-			if (im) {
-				const s = im[0];
-				input = input.slice(s.length);
-				output.push(s);
-			} else {
-				throw new Error("Unexpected dot segment condition");
-			}
-		}
-	}
+    //perform scheme specific parsing
+    if (schemeHandler && schemeHandler.parse) {
+      schemeHandler.parse(components, options)
+    }
+  } else {
+    components.error = components.error || 'URI can not be parsed.'
+  }
 
-	return output.join("");
-};
+  return components
+}
 
-export function serialize(components:URIComponents, options:URIOptions = {}):string {
-	const protocol = (options.iri ? IRI_PROTOCOL : URI_PROTOCOL);
-	const uriTokens:Array<string> = [];
+function _recomposeAuthority(components: URIComponents, options: URIOptions): string | undefined {
+  const protocol = options.iri !== false ? IRI_PROTOCOL : URI_PROTOCOL
+  const uriTokens: Array<string> = []
 
-	//find scheme handler
-	const schemeHandler = SCHEMES[(options.scheme || components.scheme || "").toLowerCase()];
+  if (components.userinfo !== undefined) {
+    uriTokens.push(components.userinfo)
+    uriTokens.push('@')
+  }
 
-	//perform scheme specific serialization
-	if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options);
+  if (components.host !== undefined) {
+    //normalize IP hosts, add brackets and escape zone separator for IPv6
+    uriTokens.push(
+      _normalizeIPv6(_normalizeIPv4(String(components.host), protocol), protocol).replace(
+        protocol.IPV6ADDRESS,
+        (_, $1, $2) => '[' + $1 + ($2 ? '%25' + $2 : '') + ']',
+      ),
+    )
+  }
 
-	if (components.host) {
-		//if host component is an IPv6 address
-		if (protocol.IPV6ADDRESS.test(components.host)) {
-			//TODO: normalize IPv6 address as per RFC 5952
-		}
+  if (typeof components.port === 'number' || typeof components.port === 'string') {
+    uriTokens.push(':')
+    uriTokens.push(String(components.port))
+  }
 
-		//if host component is a domain name
-		else if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
-			//convert IDN via punycode
-			try {
-				components.host = (!options.iri ? punycode.toASCII(components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase()) : punycode.toUnicode(components.host));
-			} catch (e) {
-				components.error = components.error || "Host's domain name can not be converted to " + (!options.iri ? "ASCII" : "Unicode") + " via punycode: " + e;
-			}
-		}
-	}
+  return uriTokens.length ? uriTokens.join('') : undefined
+}
 
-	//normalize encoding
-	_normalizeComponentEncoding(components, protocol);
+const RDS1 = /^\.\.?\//
+const RDS2 = /^\/\.(\/|$)/
+const RDS3 = /^\/\.\.(\/|$)/
+const RDS4 = /^\.\.?$/
+const RDS5 = /^\/?(?:.|\n)*?(?=\/|$)/
 
-	if (options.reference !== "suffix" && components.scheme) {
-		uriTokens.push(components.scheme);
-		uriTokens.push(":");
-	}
+export function removeDotSegments(input: string): string {
+  const output: Array<string> = []
 
-	const authority = _recomposeAuthority(components, options);
-	if (authority !== undefined) {
-		if (options.reference !== "suffix") {
-			uriTokens.push("//");
-		}
+  while (input.length) {
+    if (input.match(RDS1)) {
+      input = input.replace(RDS1, '')
+    } else if (input.match(RDS2)) {
+      input = input.replace(RDS2, '/')
+    } else if (input.match(RDS3)) {
+      input = input.replace(RDS3, '/')
+      output.pop()
+    } else if (input === '.' || input === '..') {
+      input = ''
+    } else {
+      const im = input.match(RDS5)
+      if (im) {
+        const s = im[0]
+        input = input.slice(s.length)
+        output.push(s)
+      } else {
+        throw new Error('Unexpected dot segment condition')
+      }
+    }
+  }
 
-		uriTokens.push(authority);
+  return output.join('')
+}
 
-		if (components.path && components.path.charAt(0) !== "/") {
-			uriTokens.push("/");
-		}
-	}
+export function serialize(components: URIComponents, options: URIOptions = {}): string {
+  const protocol = options.iri ? IRI_PROTOCOL : URI_PROTOCOL
+  const uriTokens: Array<string> = []
 
-	if (components.path !== undefined) {
-		let s = components.path;
+  //find scheme handler
+  const schemeHandler = SCHEMES[(options.scheme || components.scheme || '').toLowerCase()]
 
-		if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
-			s = removeDotSegments(s);
-		}
+  //perform scheme specific serialization
+  if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(components, options)
 
-		if (authority === undefined) {
-			s = s.replace(/^\/\//, "/%2F");  //don't allow the path to start with "//"
-		}
+  if (components.host) {
+    //if host component is an IPv6 address
+    if (protocol.IPV6ADDRESS.test(components.host)) {
+      //TODO: normalize IPv6 address as per RFC 5952
+    }
 
-		uriTokens.push(s);
-	}
+    //if host component is a domain name
+    else if (options.domainHost || (schemeHandler && schemeHandler.domainHost)) {
+      //convert IDN via punycode
+      try {
+        components.host = !options.iri
+          ? punycode.toASCII(
+              components.host.replace(protocol.PCT_ENCODED, pctDecChars).toLowerCase(),
+            )
+          : punycode.toUnicode(components.host)
+      } catch (e) {
+        components.error =
+          components.error ||
+          "Host's domain name can not be converted to " +
+            (!options.iri ? 'ASCII' : 'Unicode') +
+            ' via punycode: ' +
+            e
+      }
+    }
+  }
 
-	if (components.query !== undefined) {
-		uriTokens.push("?");
-		uriTokens.push(components.query);
-	}
+  //normalize encoding
+  _normalizeComponentEncoding(components, protocol)
 
-	if (components.fragment !== undefined) {
-		uriTokens.push("#");
-		uriTokens.push(components.fragment);
-	}
+  if (options.reference !== 'suffix' && components.scheme) {
+    uriTokens.push(components.scheme)
+    uriTokens.push(':')
+  }
 
-	return uriTokens.join("");  //merge tokens into a string
-};
+  const authority = _recomposeAuthority(components, options)
+  if (authority !== undefined) {
+    if (options.reference !== 'suffix') {
+      uriTokens.push('//')
+    }
 
-export function resolveComponents(base:URIComponents, relative:URIComponents, options:URIOptions = {}, skipNormalization?:boolean):URIComponents {
-	const target:URIComponents = {};
+    uriTokens.push(authority)
 
-	if (!skipNormalization) {
-		base = parse(serialize(base, options), options);  //normalize base components
-		relative = parse(serialize(relative, options), options);  //normalize relative components
-	}
-	options = options || {};
+    if (components.path && components.path.charAt(0) !== '/') {
+      uriTokens.push('/')
+    }
+  }
 
-	if (!options.tolerant && relative.scheme) {
-		target.scheme = relative.scheme;
-		//target.authority = relative.authority;
-		target.userinfo = relative.userinfo;
-		target.host = relative.host;
-		target.port = relative.port;
-		target.path = removeDotSegments(relative.path || "");
-		target.query = relative.query;
-	} else {
-		if (relative.userinfo !== undefined || relative.host !== undefined || relative.port !== undefined) {
-			//target.authority = relative.authority;
-			target.userinfo = relative.userinfo;
-			target.host = relative.host;
-			target.port = relative.port;
-			target.path = removeDotSegments(relative.path || "");
-			target.query = relative.query;
-		} else {
-			if (!relative.path) {
-				target.path = base.path;
-				if (relative.query !== undefined) {
-					target.query = relative.query;
-				} else {
-					target.query = base.query;
-				}
-			} else {
-				if (relative.path.charAt(0) === "/") {
-					target.path = removeDotSegments(relative.path);
-				} else {
-					if ((base.userinfo !== undefined || base.host !== undefined || base.port !== undefined) && !base.path) {
-						target.path = "/" + relative.path;
-					} else if (!base.path) {
-						target.path = relative.path;
-					} else {
-						target.path = base.path.slice(0, base.path.lastIndexOf("/") + 1) + relative.path;
-					}
-					target.path = removeDotSegments(target.path);
-				}
-				target.query = relative.query;
-			}
-			//target.authority = base.authority;
-			target.userinfo = base.userinfo;
-			target.host = base.host;
-			target.port = base.port;
-		}
-		target.scheme = base.scheme;
-	}
+  if (components.path !== undefined) {
+    let s = components.path
 
-	target.fragment = relative.fragment;
+    if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) {
+      s = removeDotSegments(s)
+    }
 
-	return target;
-};
+    if (authority === undefined) {
+      s = s.replace(/^\/\//, '/%2F') //don't allow the path to start with "//"
+    }
 
-export function resolve(baseURI:string, relativeURI:string, options?:URIOptions):string {
-	const schemelessOptions = assign({ scheme : 'null' }, options);
-	return serialize(resolveComponents(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true), schemelessOptions);
-};
+    uriTokens.push(s)
+  }
 
-export function normalize(uri:string, options?:URIOptions):string;
-export function normalize(uri:URIComponents, options?:URIOptions):URIComponents;
-export function normalize(uri:any, options?:URIOptions):any {
-	if (typeof uri === "string") {
-		uri = serialize(parse(uri, options), options);
-	} else if (typeOf(uri) === "object") {
-		uri = parse(serialize(<URIComponents>uri, options), options);
-	}
+  if (components.query !== undefined) {
+    uriTokens.push('?')
+    uriTokens.push(components.query)
+  }
 
-	return uri;
-};
+  if (components.fragment !== undefined) {
+    uriTokens.push('#')
+    uriTokens.push(components.fragment)
+  }
 
-export function equal(uriA:string, uriB:string, options?: URIOptions):boolean;
-export function equal(uriA:URIComponents, uriB:URIComponents, options?:URIOptions):boolean;
-export function equal(uriA:any, uriB:any, options?:URIOptions):boolean {
-	if (typeof uriA === "string") {
-		uriA = serialize(parse(uriA, options), options);
-	} else if (typeOf(uriA) === "object") {
-		uriA = serialize(<URIComponents>uriA, options);
-	}
+  return uriTokens.join('') //merge tokens into a string
+}
 
-	if (typeof uriB === "string") {
-		uriB = serialize(parse(uriB, options), options);
-	} else if (typeOf(uriB) === "object") {
-		uriB = serialize(<URIComponents>uriB, options);
-	}
+export function resolveComponents(
+  base: URIComponents,
+  relative: URIComponents,
+  options: URIOptions = {},
+  skipNormalization?: boolean,
+): URIComponents {
+  const target: URIComponents = {}
 
-	return uriA === uriB;
-};
+  if (!skipNormalization) {
+    base = parse(serialize(base, options), options) //normalize base components
+    relative = parse(serialize(relative, options), options) //normalize relative components
+  }
+  options = options || {}
 
-export function escapeComponent(str:string, options?:URIOptions):string {
-	return str && str.toString().replace((!options || !options.iri ? URI_PROTOCOL.ESCAPE : IRI_PROTOCOL.ESCAPE), pctEncChar);
-};
+  if (!options.tolerant && relative.scheme) {
+    target.scheme = relative.scheme
+    //target.authority = relative.authority;
+    target.userinfo = relative.userinfo
+    target.host = relative.host
+    target.port = relative.port
+    target.path = removeDotSegments(relative.path || '')
+    target.query = relative.query
+  } else {
+    if (
+      relative.userinfo !== undefined ||
+      relative.host !== undefined ||
+      relative.port !== undefined
+    ) {
+      //target.authority = relative.authority;
+      target.userinfo = relative.userinfo
+      target.host = relative.host
+      target.port = relative.port
+      target.path = removeDotSegments(relative.path || '')
+      target.query = relative.query
+    } else {
+      if (!relative.path) {
+        target.path = base.path
+        if (relative.query !== undefined) {
+          target.query = relative.query
+        } else {
+          target.query = base.query
+        }
+      } else {
+        if (relative.path.charAt(0) === '/') {
+          target.path = removeDotSegments(relative.path)
+        } else {
+          if (
+            (base.userinfo !== undefined || base.host !== undefined || base.port !== undefined) &&
+            !base.path
+          ) {
+            target.path = '/' + relative.path
+          } else if (!base.path) {
+            target.path = relative.path
+          } else {
+            target.path = base.path.slice(0, base.path.lastIndexOf('/') + 1) + relative.path
+          }
+          target.path = removeDotSegments(target.path)
+        }
+        target.query = relative.query
+      }
+      //target.authority = base.authority;
+      target.userinfo = base.userinfo
+      target.host = base.host
+      target.port = base.port
+    }
+    target.scheme = base.scheme
+  }
 
-export function unescapeComponent(str:string, options?:URIOptions):string {
-	return str && str.toString().replace((!options || !options.iri ? URI_PROTOCOL.PCT_ENCODED : IRI_PROTOCOL.PCT_ENCODED), pctDecChars);
-};
+  target.fragment = relative.fragment
+
+  return target
+}
+
+export function resolve(baseURI: string, relativeURI: string, options?: URIOptions): string {
+  const schemelessOptions = assign({ scheme: 'null' }, options)
+  return serialize(
+    resolveComponents(
+      parse(baseURI, schemelessOptions),
+      parse(relativeURI, schemelessOptions),
+      schemelessOptions,
+      true,
+    ),
+    schemelessOptions,
+  )
+}
+
+export function normalize(uri: string, options?: URIOptions): string
+export function normalize(uri: URIComponents, options?: URIOptions): URIComponents
+export function normalize(uri: any, options?: URIOptions): any {
+  if (typeof uri === 'string') {
+    uri = serialize(parse(uri, options), options)
+  } else if (typeOf(uri) === 'object') {
+    uri = parse(serialize(<URIComponents>uri, options), options)
+  }
+
+  return uri
+}
+
+export function equal(uriA: string, uriB: string, options?: URIOptions): boolean
+export function equal(uriA: URIComponents, uriB: URIComponents, options?: URIOptions): boolean
+export function equal(uriA: any, uriB: any, options?: URIOptions): boolean {
+  if (typeof uriA === 'string') {
+    uriA = serialize(parse(uriA, options), options)
+  } else if (typeOf(uriA) === 'object') {
+    uriA = serialize(<URIComponents>uriA, options)
+  }
+
+  if (typeof uriB === 'string') {
+    uriB = serialize(parse(uriB, options), options)
+  } else if (typeOf(uriB) === 'object') {
+    uriB = serialize(<URIComponents>uriB, options)
+  }
+
+  return uriA === uriB
+}
+
+export function escapeComponent(str: string, options?: URIOptions): string {
+  return (
+    str &&
+    str
+      .toString()
+      .replace(!options || !options.iri ? URI_PROTOCOL.ESCAPE : IRI_PROTOCOL.ESCAPE, pctEncChar)
+  )
+}
+
+export function unescapeComponent(str: string, options?: URIOptions): string {
+  return (
+    str &&
+    str
+      .toString()
+      .replace(
+        !options || !options.iri ? URI_PROTOCOL.PCT_ENCODED : IRI_PROTOCOL.PCT_ENCODED,
+        pctDecChars,
+      )
+  )
+}

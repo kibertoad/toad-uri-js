@@ -1,0 +1,41 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"javascript": {
+		"formatter": {
+			"arrowParentheses": "always",
+			"indentStyle": "space",
+			"semicolons": "asNeeded",
+			"trailingComma": "all",
+			"lineWidth": 100,
+			"quoteStyle": "single"
+		}
+	},
+	"files": {
+		"ignore": ["./src/punycode.d.ts"]
+	},
+	"linter": {
+		"rules": {
+			"style": {
+				"noNonNullAssertion": "off",
+				"useTemplate": "off",
+				"noUselessElse": "off",
+				"noParameterAssign": "off",
+				"useSingleVarDeclarator": "off"
+			},
+			"correctness": {
+				"noSwitchDeclarations": "off",
+				"noInnerDeclarations": "off"
+			},
+			"suspicious": {
+				"noGlobalIsNan": "off",
+				"noExplicitAny": "off",
+				"noControlCharactersInRegex": "off",
+				"noAssignInExpressions": "off",
+				"noImplicitAnyLet": "off"
+			},
+			"complexity": {
+				"useOptionalChain": "off"
+			}
+		}
+	}
+}

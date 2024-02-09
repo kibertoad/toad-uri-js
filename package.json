@@ -22,7 +22,9 @@
     "build:es5:min": "uglifyjs dist/es5/uri.all.js --support-ie8 --output dist/es5/uri.all.min.js --in-source-map dist/es5/uri.all.js.map --source-map uri.all.min.js.map --comments --compress --mangle --pure-funcs merge subexp && mv uri.all.min.js.map dist/es5/ && cp dist/es5/uri.all.d.ts dist/es5/uri.all.min.d.ts",
     "build": "npm run build:esnext && npm run build:es5 && npm run build:es5:min",
     "clean": "rm -rf dist",
-    "test": "vitest --coverage"
+    "test": "vitest --coverage",
+    "lint": "biome lint src tests biome.json",
+    "lint:fix": "biome check --apply src tests biome.json"
   },
   "repository": {
     "type": "git",
@@ -53,12 +55,22 @@
     "RFC6874"
   ],
   "author": "Gary Court <gary.court@gmail.com>",
+  "maintainers": [
+    {
+      "name": "Igor Savin",
+      "email": "kibertoad@gmail.com"
+    }
+  ],
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/garycourt/uri-js/issues"
   },
   "homepage": "https://github.com/garycourt/uri-js",
+  "dependencies": {
+    "punycode": "^2.1.0"
+  },
   "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
     "babel-cli": "^6.26.0",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-latest": "^6.24.1",
@@ -70,8 +82,5 @@
     "typescript": "^5.3.3",
     "uglify-js": "^2.8.14",
     "vitest": "^1.2.2"
-  },
-  "dependencies": {
-    "punycode": "^2.1.0"
   }
 }
