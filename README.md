@@ -101,7 +101,7 @@ All of the above functions can accept an additional options argument that is an 
 
 ## Scheme Extendable
 
-URI.js supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme) dependent processing rules. Currently, URI.js has built in support for the following schemes:
+toad-uri.js supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_scheme) dependent processing rules. Currently, toad-uri.js has built in support for the following schemes:
 
 *	http \[[RFC 2616](http://www.ietf.org/rfc/rfc2616.txt)\]
 *	https \[[RFC 2818](http://www.ietf.org/rfc/rfc2818.txt)\]
