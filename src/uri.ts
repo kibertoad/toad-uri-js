@@ -34,7 +34,7 @@
  * or implied, of Gary Court.
  */
 
-import punycode from 'punycode'
+import punycode from 'punycode/'
 import IRI_PROTOCOL from './regexps-iri'
 import URI_PROTOCOL from './regexps-uri'
 import { assign, toUpperCase, typeOf } from './util'
