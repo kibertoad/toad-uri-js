@@ -60,6 +60,9 @@
     "url": "https://github.com/garycourt/uri-js/issues"
   },
   "homepage": "https://github.com/garycourt/uri-js",
+  "dependencies": {
+    "punycode": "^2.1.0"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
     "babel-cli": "^6.26.0",
@@ -73,8 +76,5 @@
     "typescript": "^5.3.3",
     "uglify-js": "^2.8.14",
     "vitest": "^1.2.2"
-  },
-  "dependencies": {
-    "punycode": "^2.1.0"
   }
 }

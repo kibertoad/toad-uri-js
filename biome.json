@@ -10,6 +10,9 @@
 			"quoteStyle": "single"
 		}
 	},
+	"files": {
+		"ignore": ["./src/punycode.d.ts"]
+	},
 	"linter": {
 		"rules": {
 			"style": {
