@@ -1,4 +1,4 @@
-import punycode from 'punycode'
+import punycode from 'punycode/'
 import { URIComponents, URIOptions, URISchemeHandler } from '../uri'
 import { pctDecChars, pctEncChar, unescapeComponent } from '../uri'
 import { merge, subexp, toArray, toUpperCase } from '../util'
