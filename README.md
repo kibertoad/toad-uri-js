@@ -1,14 +1,15 @@
-# URI.js
+# toad-uri.js
 
 [![NPM Version](https://img.shields.io/npm/v/toad-uri-js.svg)](https://npmjs.org/package/toad-uri-js)
 [![Build Status](https://github.com/kibertoad/toad-uri-js/workflows/ci/badge.svg)](https://github.com/kibertoad/toad-uri-js/actions)
 [![Coverage Status](https://coveralls.io/repos/kibertoad/toad-uri-js/badge.svg?branch=main)](https://coveralls.io/r/kibertoad/toad-uri-js?branch=main)
 
-
-URI.js is an [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt) compliant, scheme extendable URI parsing/normalizing/resolving/serializing library for all JavaScript environments (browsers, Node.js, etc).
+toad-uri.js is an [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt) compliant, scheme extendable URI parsing/normalizing/resolving/serializing library for all JavaScript environments (browsers, Node.js, etc).
 It is also compliant with the IRI ([RFC 3987](http://www.ietf.org/rfc/rfc3987.txt)), IDNA ([RFC 5890](http://www.ietf.org/rfc/rfc5890.txt)), IPv6 Address ([RFC 5952](http://www.ietf.org/rfc/rfc5952.txt)), IPv6 Zone Identifier ([RFC 6874](http://www.ietf.org/rfc/rfc6874.txt)) specifications.
 
-URI.js has an extensive test suite, and works in all (Node.js, web) environments. It weighs in at 6.4kb (gzipped, 17kb deflated).
+toad-uri.js weighs 6.4kb (gzipped, 17kb deflated)
+
+It has an extensive test suite.
 
 This is a fork of [uri-js](https://github.com/garycourt/uri-js), aiming to provide a consistently maintained modern version of the library.
 
@@ -173,25 +174,25 @@ URI.js supports inserting custom [scheme](http://en.wikipedia.org/wiki/URI_schem
 
 To load in a browser, use the following tag:
 
-	<script type="text/javascript" src="uri-js/dist/es5/uri.all.min.js"></script>
+	<script type="text/javascript" src="toad-uri-js/dist/index.mjs"></script>
 
 To load in a CommonJS/Module environment, first install with npm/yarn by running on the command line:
 
-	npm install uri-js
+	npm install toad-uri-js
 	# OR
-	yarn add uri-js
+	yarn add toad-uri-js
 
 Then, in your code, load it using:
 
-	const URI = require("uri-js");
+	const URI = require("toad-uri-js");
 
 If you are writing your code in ES6+ (ESNEXT) or TypeScript, you would load it using:
 
-	import * as URI from "uri-js";
+	import * as URI from "toad-uri-js";
 
 Or you can load just what you need using named exports:
 
-	import { parse, serialize, resolve, resolveComponents, normalize, equal, removeDotSegments, pctEncChar, pctDecChars, escapeComponent, unescapeComponent } from "uri-js";
+	import { parse, serialize, resolve, resolveComponents, normalize, equal, removeDotSegments, pctEncChar, pctDecChars, escapeComponent, unescapeComponent } from "toad-uri-js";
 
 ## Breaking changes
 
