@@ -1,4 +1,4 @@
-import { URIRegExps } from "./uri";
-import { buildExps } from "./regexps-uri";
+import { buildExps } from './regexps-uri'
+import { URIRegExps } from './uri'
 
-export default buildExps(true);
+export default buildExps(true)

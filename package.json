@@ -22,7 +22,9 @@
     "build:es5:min": "uglifyjs dist/es5/uri.all.js --support-ie8 --output dist/es5/uri.all.min.js --in-source-map dist/es5/uri.all.js.map --source-map uri.all.min.js.map --comments --compress --mangle --pure-funcs merge subexp && mv uri.all.min.js.map dist/es5/ && cp dist/es5/uri.all.d.ts dist/es5/uri.all.min.d.ts",
     "build": "npm run build:esnext && npm run build:es5 && npm run build:es5:min",
     "clean": "rm -rf dist",
-    "test": "vitest --coverage"
+    "test": "vitest --coverage",
+    "lint": "biome lint src tests biome.json",
+    "lint:fix": "biome check --apply src tests biome.json"
   },
   "repository": {
     "type": "git",
@@ -59,6 +61,7 @@
   },
   "homepage": "https://github.com/garycourt/uri-js",
   "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
     "babel-cli": "^6.26.0",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-latest": "^6.24.1",
