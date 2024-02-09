@@ -5,6 +5,8 @@ It is also compliant with the IRI ([RFC 3987](http://www.ietf.org/rfc/rfc3987.tx
 
 URI.js has an extensive test suite, and works in all (Node.js, web) environments. It weighs in at 6.4kb (gzipped, 17kb deflated).
 
+This is a fork of [uri-js](https://github.com/garycourt/uri-js), aiming to provide a consistently maintained modern version of the library.
+
 ## API
 
 ### Parsing
@@ -187,6 +189,10 @@ Or you can load just what you need using named exports:
 	import { parse, serialize, resolve, resolveComponents, normalize, equal, removeDotSegments, pctEncChar, pctDecChars, escapeComponent, unescapeComponent } from "uri-js";
 
 ## Breaking changes
+
+### Breaking changes from 4.x
+
+This is the first version that was forked from the original uri-js. Library no longer officially supports Node < 16.x (although it may still work - do your own testing), and a different solution for CJS/ESM publishing is used now.
 
 ### Breaking changes from 3.x
 
