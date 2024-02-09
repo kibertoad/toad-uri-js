@@ -61,7 +61,7 @@
       "email": "kibertoad@gmail.com"
     }
   ],
-  "license": "BSD-2-Clause",
+  "license": "BSD-2-Clause-Views",
   "bugs": {
     "url": "https://github.com/garycourt/uri-js/issues"
   },
