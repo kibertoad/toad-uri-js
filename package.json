@@ -55,6 +55,12 @@
     "RFC6874"
   ],
   "author": "Gary Court <gary.court@gmail.com>",
+  "maintainers": [
+    {
+      "name": "Igor Savin",
+      "email": "kibertoad@gmail.com"
+    }
+  ],
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/garycourt/uri-js/issues"
