@@ -1,6 +1,6 @@
 {
   "name": "toad-uri-js",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "A modern RFC 3986/3987 compliant, scheme extendable URI/IRI parsing/normalizing/resolving/serializing library for JavaScript.",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
