@@ -183,7 +183,7 @@ const handler: URISchemeHandler<MailtoComponents> = {
     if (mailtoComponents.subject) headers.subject = mailtoComponents.subject
     if (mailtoComponents.body) headers.body = mailtoComponents.body
 
-    const fields = []
+    const fields: string[] = []
     for (const name in headers) {
       if (headers[name] !== O[name]) {
         fields.push(

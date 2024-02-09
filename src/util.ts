@@ -21,7 +21,7 @@ export function typeOf(o: any): string {
     ? 'undefined'
     : o === null
       ? 'null'
-      : Object.prototype.toString.call(o).split(' ').pop().split(']').shift().toLowerCase()
+      : Object.prototype.toString.call(o)!.split(' ')!.pop()!.split(']')!.shift()!.toLowerCase()
 }
 
 export function toUpperCase(str: string): string {
