@@ -1,12 +1,22 @@
-//
-//
-// Tests
-//
-//
+import * as URI from '../src/index'
 
-if (typeof URI === "undefined") {
-	var URI = require("../dist/es5/uri.all");
+import { test, expect, describe} from 'vitest'
+
+function ok(smth) {
 }
+
+function strictEqual(actual, expected, _message) {
+	expect(actual).equals(expected)
+}
+
+function notStrictEqual(actual, expected, _message) {
+	expect(actual).not.equals(expected)
+}
+
+function deepEqual(actual, expected, _message) {
+	expect(actual).deep.equals(expected)
+}
+
 
 test("Acquire URI", function () {
 	//URI = require("./uri").URI;
@@ -226,7 +236,7 @@ test("URI Parsing", function () {
 	strictEqual(components.path, "/test", "path");
 	strictEqual(components.query, undefined, "query");
 	strictEqual(components.fragment, undefined, "fragment");
-	
+
 	//IPv6address, example from RFC 5952
 	components = URI.parse("//[2001:db8::1]:80");
 	strictEqual(components.error, undefined, "IPv6address errors");
@@ -831,11 +841,11 @@ if (URI.SCHEMES["ws"]) {
 		strictEqual(URI.serialize({scheme : "ws", host: "example.com", resourceName: '/foo?bar', secure: false}), "ws://example.com/foo?bar");
 		strictEqual(URI.serialize({scheme : "ws", host: "example.com", resourceName: '/foo?bar', secure: true}), "wss://example.com/foo?bar");
 	});
-	
+
 	test("WS Equal", function () {
 		strictEqual(URI.equal("WS://ABC.COM:80/chat#one", "ws://abc.com/chat"), true);
 	});
-	
+
 	test("WS Normalize", function () {
 		strictEqual(URI.normalize("ws://example.com:80/foo#hash"), "ws://example.com/foo");
 	});
@@ -892,11 +902,11 @@ if (URI.SCHEMES["wss"]) {
 		strictEqual(URI.serialize({scheme : "wss", host: "example.com", resourceName: '/foo?bar', secure: false}), "ws://example.com/foo?bar");
 		strictEqual(URI.serialize({scheme : "wss", host: "example.com", resourceName: '/foo?bar', secure: true}), "wss://example.com/foo?bar");
 	});
-	
+
 	test("WSS Equal", function () {
 		strictEqual(URI.equal("WSS://ABC.COM:443/chat#one", "wss://abc.com/chat"), true);
 	});
-	
+
 	test("WSS Normalize", function () {
 		strictEqual(URI.normalize("wss://example.com:443/foo#hash"), "wss://example.com/foo");
 	});
