@@ -1,34 +1,40 @@
 {
   "name": "uri-js",
   "version": "4.4.1",
-  "description": "An RFC 3986/3987 compliant, scheme extendable URI/IRI parsing/normalizing/resolving/serializing library for JavaScript.",
-  "main": "dist/es5/uri.all.js",
-  "types": "dist/es5/uri.all.d.ts",
-  "directories": {
-    "test": "tests"
+  "description": "A modern RFC 3986/3987 compliant, scheme extendable URI/IRI parsing/normalizing/resolving/serializing library for JavaScript.",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
   },
   "files": [
     "dist",
     "package.json",
-    "yarn.lock",
     "README.md",
-    "CHANGELOG",
     "LICENSE"
   ],
   "scripts": {
-    "build:esnext": "tsc",
-    "build:es5": "rollup -c && cp dist/esnext/uri.d.ts dist/es5/uri.all.d.ts && npm run build:es5:fix-sourcemap",
-    "build:es5:fix-sourcemap": "sorcery -i dist/es5/uri.all.js",
-    "build:es5:min": "uglifyjs dist/es5/uri.all.js --support-ie8 --output dist/es5/uri.all.min.js --in-source-map dist/es5/uri.all.js.map --source-map uri.all.min.js.map --comments --compress --mangle --pure-funcs merge subexp && mv uri.all.min.js.map dist/es5/ && cp dist/es5/uri.all.d.ts dist/es5/uri.all.min.d.ts",
-    "build": "npm run build:esnext && npm run build:es5 && npm run build:es5:min",
-    "clean": "rm -rf dist",
+    "build:dev": "tsc",
+    "build:release": "tsup",
     "test": "vitest --coverage",
     "lint": "biome lint src tests biome.json",
-    "lint:fix": "biome check --apply src tests biome.json"
+    "lint:fix": "biome check --apply src tests biome.json",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/garycourt/uri-js"
+    "url": "http://github.com/kibertoad/uri-js"
   },
   "keywords": [
     "URI",
@@ -63,24 +69,17 @@
   ],
   "license": "BSD-2-Clause-Views",
   "bugs": {
-    "url": "https://github.com/garycourt/uri-js/issues"
+    "url": "https://github.com/kibertoad/uri-js/issues"
   },
-  "homepage": "https://github.com/garycourt/uri-js",
+  "homepage": "https://github.com/kibertoad/uri-js",
   "dependencies": {
     "punycode": "^2.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
-    "babel-cli": "^6.26.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-latest": "^6.24.1",
     "@vitest/coverage-v8": "^1.2.2",
-    "rollup": "^0.41.6",
-    "rollup-plugin-babel": "^2.7.1",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "sorcery": "^0.10.0",
+    "tsup": "^8.0.1",
     "typescript": "^5.3.3",
-    "uglify-js": "^2.8.14",
     "vitest": "^1.2.2"
   }
 }
