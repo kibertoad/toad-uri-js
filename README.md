@@ -12,7 +12,7 @@ toad-uri.js weighs 6.4kb (gzipped, 17kb deflated)
 It has an extensive test suite.
 
 ## Note about replacing `uri-js`
-This is a fork of [uri-js](https://github.com/garycourt/uri-js), aiming to provide a consistently maintained modern version of the library. If your project has a dependency on unmaintained `uri-js`, you can replace it (using the alias) with `toad-uri.js` in `package.json`: 
+This is a fork of [uri-js](https://github.com/garycourt/uri-js), aiming to provide a consistently maintained modern version of the library. If your project has a dependency on unmaintained `uri-js`, you can replace it (using the alias) with `toad-uri-js` in `package.json`: 
 ```
   "overrides": {
     "uri-js": "npm:toad-uri-js@^5.0.1"
