@@ -1135,17 +1135,19 @@ if (URI.SCHEMES.wss) {
 }
 
 describe('removeDotSegments (CVE-2026-93690)', () => {
-  // U+2028 (line separator) and U+2029 (paragraph separator) are not matched
-  // by `.` in JavaScript regexes. The previous RDS5 regex therefore produced
+  // U+2028 (line separator), U+2029 (paragraph separator) and U+000D (\r,
+  // carriage return) are not matched by `.` in JavaScript regexes, and the
+  // previous RDS5 regex only added `\n` back. It therefore produced
   // an empty match on a path segment starting with one of them, so
   // removeDotSegments never made progress: it looped forever and grew the
   // output array without bound (CWE-835). These inputs must terminate and
   // preserve the (non-dot) segment unchanged.
-  test('terminates on U+2028 / U+2029 segments', () => {
+  test('terminates on U+2028 / U+2029 / CR segments', () => {
     strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2028 leading')
     strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2029 leading')
     strictEqual(URI.removeDotSegments('/a/ /b'), '/a/ /b', 'U+2028 mid-path')
     strictEqual(URI.removeDotSegments(' '), ' ', 'U+2028 no leading slash')
+    strictEqual(URI.removeDotSegments('/\r'), '/\r', 'CR (U+000D) leading')
   })
 
   test('still resolves standard RFC 3986 §5.2.4 dot segments', () => {
