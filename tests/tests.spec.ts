@@ -1133,3 +1133,29 @@ if (URI.SCHEMES.wss) {
     strictEqual(URI.normalize('wss://example.com:443/foo#hash'), 'wss://example.com/foo')
   })
 }
+
+describe('removeDotSegments (CVE-2026-93690)', () => {
+  // U+2028 (line separator) and U+2029 (paragraph separator) are not matched
+  // by `.` in JavaScript regexes. The previous RDS5 regex therefore produced
+  // an empty match on a path segment starting with one of them, so
+  // removeDotSegments never made progress: it looped forever and grew the
+  // output array without bound (CWE-835). These inputs must terminate and
+  // preserve the (non-dot) segment unchanged.
+  test('terminates on U+2028 / U+2029 segments', () => {
+    strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2028 leading')
+    strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2029 leading')
+    strictEqual(URI.removeDotSegments('/a/ /b'), '/a/ /b', 'U+2028 mid-path')
+    strictEqual(URI.removeDotSegments(' '), ' ', 'U+2028 no leading slash')
+  })
+
+  test('still resolves standard RFC 3986 §5.2.4 dot segments', () => {
+    strictEqual(URI.removeDotSegments('/a/b/c/./../../g'), '/a/g', 'RFC example 1')
+    strictEqual(URI.removeDotSegments('mid/content=5/../6'), 'mid/6', 'RFC example 2')
+    strictEqual(URI.removeDotSegments('/../g'), '/g', 'leading /../')
+  })
+
+  test('normalize() terminates on a path containing U+2028', () => {
+    URI.normalize('http://example.com/ ')
+    ok(true)
+  })
+})
