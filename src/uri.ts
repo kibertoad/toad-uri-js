@@ -307,7 +307,7 @@ export function parse(uriString: string, options: URIOptions = {}): URIComponent
 
       //fix port number
       if (isNaN(components.port)) {
-        components.port = uriString.match(/\/\/(?:.|\n)*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined
+        components.port = uriString.match(/\/\/[\s\S]*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined
       }
     }
 
