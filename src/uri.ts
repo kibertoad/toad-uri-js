@@ -409,7 +409,6 @@ function _recomposeAuthority(components: URIComponents, options: URIOptions): st
 const RDS1 = /^\.\.?\//
 const RDS2 = /^\/\.(\/|$)/
 const RDS3 = /^\/\.\.(\/|$)/
-const RDS4 = /^\.\.?$/
 const RDS5 = /^\/?[\s\S]*?(?=\/|$)/
 
 export function removeDotSegments(input: string): string {
@@ -429,7 +428,7 @@ export function removeDotSegments(input: string): string {
       input = ''
     } else {
       const im = input.match(RDS5)
-      if (im && im[0].length) {
+      if (im) {
         const s = im[0]
         input = input.slice(s.length)
         output.push(s)
