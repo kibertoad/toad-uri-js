@@ -1143,10 +1143,10 @@ describe('removeDotSegments (CVE-2026-93690)', () => {
   // output array without bound (CWE-835). These inputs must terminate and
   // preserve the (non-dot) segment unchanged.
   test('terminates on U+2028 / U+2029 / CR segments', () => {
-    strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2028 leading')
-    strictEqual(URI.removeDotSegments('/ '), '/ ', 'U+2029 leading')
-    strictEqual(URI.removeDotSegments('/a/ /b'), '/a/ /b', 'U+2028 mid-path')
-    strictEqual(URI.removeDotSegments(' '), ' ', 'U+2028 no leading slash')
+    strictEqual(URI.removeDotSegments('/\u2028'), '/\u2028', 'U+2028 leading')
+    strictEqual(URI.removeDotSegments('/\u2029'), '/\u2029', 'U+2029 leading')
+    strictEqual(URI.removeDotSegments('/a/\u2028/b'), '/a/\u2028/b', 'U+2028 mid-path')
+    strictEqual(URI.removeDotSegments('\u2028'), '\u2028', 'U+2028 no leading slash')
     strictEqual(URI.removeDotSegments('/\r'), '/\r', 'CR (U+000D) leading')
   })
 
@@ -1156,9 +1156,21 @@ describe('removeDotSegments (CVE-2026-93690)', () => {
     strictEqual(URI.removeDotSegments('/../g'), '/g', 'leading /../')
   })
 
-  test('normalize() terminates on a path containing U+2028', () => {
-    URI.normalize('http://example.com/ ')
-    ok(true)
+  // The loop sees a raw separator (and could hang) only in IRI mode: in URI
+  // mode, parse() and serialize() percent-encode U+2028/U+2029 before
+  // removeDotSegments runs. These public-API cases pin the reachable IRI
+  // path and the URI-mode encoding behavior.
+  test('normalize() terminates on a U+2028 path', () => {
+    strictEqual(
+      URI.normalize('http://example.com/\u2028', { iri: true }),
+      'http://example.com/\u2028',
+    )
+    strictEqual(URI.normalize('http://example.com/\u2028'), 'http://example.com/%E2%80%A8')
+  })
+
+  test('resolve() terminates on U+2028 segments in IRI mode', () => {
+    strictEqual(URI.resolve('http://a/b/', '\u2028', { iri: true }), 'http://a/b/\u2028')
+    strictEqual(URI.resolve('http://a/b/c', '../\u2028x', { iri: true }), 'http://a/\u2028x')
   })
 })
 
