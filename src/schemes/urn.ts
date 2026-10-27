@@ -16,7 +16,7 @@ const TRANS$$ = "[0-9A-Za-z\\(\\)\\+\\,\\-\\.\\:\\=\\@\\;\\$\\_\\!\\*\\'\\/\\?\\
 const NSS$ = '(?:(?:' + PCT_ENCODED$ + '|' + TRANS$$ + ')+)'
 const URN_SCHEME = new RegExp('^urn\\:(' + NID$ + ')$')
 const URN_PATH = new RegExp('^(' + NID$ + ')\\:(' + NSS$ + ')$')
-const URN_PARSE = /^([^\:]+)\:(.*)/
+const URN_PARSE = /^([^\:]+)\:([\s\S]*)/
 const URN_EXCLUDED = /[\x00-\x20\\\"\&\<\>\[\]\^\`\{\|\}\~\x7F-\xFF]/g
 
 //RFC 2141

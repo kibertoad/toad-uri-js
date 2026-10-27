@@ -1161,3 +1161,19 @@ describe('removeDotSegments (CVE-2026-93690)', () => {
     ok(true)
   })
 })
+
+describe('line terminator truncation (URI_PARSE / URN_PARSE)', () => {
+  // Same root cause as CVE-2026-93690, different symptom: `.`-based groups
+  // in URI_PARSE and URN_PARSE silently dropped everything from the first
+  // raw U+2028/U+2029 onward instead of hanging.
+  test('parse() does not truncate fragments', () => {
+    strictEqual(URI.parse('http://a/b#x\u2028y').fragment, 'x%E2%80%A8y')
+    strictEqual(URI.normalize('http://a/b#x\u2028y'), 'http://a/b#x%E2%80%A8y')
+  })
+
+  test('urn parsing does not truncate the nss', () => {
+    const components = URI.parse('urn:example:a\u2028b', { unicodeSupport: true })
+    strictEqual(components.nid, 'example', 'nid')
+    strictEqual(components.nss, 'a\u2028b', 'nss')
+  })
+})

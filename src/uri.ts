@@ -267,7 +267,7 @@ function _normalizeIPv6(host: string, protocol: URIRegExps): string {
 }
 
 const URI_PARSE =
-  /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+  /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#([\s\S]*))?/i
 const NO_MATCH_IS_UNDEFINED = (<RegExpMatchArray>''.match(/(){0}/))[1] === undefined
 
 export function parse(uriString: string, options: URIOptions = {}): URIComponents {
