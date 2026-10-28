@@ -22,6 +22,7 @@
     "dist",
     "package.json",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
@@ -30,11 +31,13 @@
     "test": "vitest --coverage",
     "lint": "biome lint src tests biome.json",
     "lint:fix": "biome check --apply src tests biome.json",
-    "prepublishOnly": "npm run build:release"
+    "prepublishOnly": "npm run build:release",
+    "changeset": "changeset",
+    "release": "changeset publish"
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/kibertoad/toad-uri-js"
+    "url": "git+https://github.com/kibertoad/toad-uri-js.git"
   },
   "keywords": [
     "URI",
@@ -78,6 +81,7 @@
   "devDependencies": {
     "@types/punycode": "^2.1.3",
     "@biomejs/biome": "^1.5.3",
+    "@changesets/cli": "^3.0.3",
     "@vitest/coverage-v8": "^1.2.2",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
