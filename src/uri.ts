@@ -122,14 +122,14 @@ export function pctDecChars(str: string): string {
   const il = str.length
 
   while (i < il) {
-    const c = parseInt(str.substr(i + 1, 2), 16)
+    const c = Number.parseInt(str.substr(i + 1, 2), 16)
 
     if (c < 128) {
       newStr += String.fromCharCode(c)
       i += 3
     } else if (c >= 194 && c < 224) {
       if (il - i >= 6) {
-        const c2 = parseInt(str.substr(i + 4, 2), 16)
+        const c2 = Number.parseInt(str.substr(i + 4, 2), 16)
         newStr += String.fromCharCode(((c & 31) << 6) | (c2 & 63))
       } else {
         newStr += str.substr(i, 6)
@@ -137,8 +137,8 @@ export function pctDecChars(str: string): string {
       i += 6
     } else if (c >= 224) {
       if (il - i >= 9) {
-        const c2 = parseInt(str.substr(i + 4, 2), 16)
-        const c3 = parseInt(str.substr(i + 7, 2), 16)
+        const c2 = Number.parseInt(str.substr(i + 4, 2), 16)
+        const c3 = Number.parseInt(str.substr(i + 7, 2), 16)
         newStr += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63))
       } else {
         newStr += str.substr(i, 9)
@@ -285,7 +285,7 @@ export function parse(uriString: string, options: URIOptions = {}): URIComponent
       components.scheme = matches[1]
       components.userinfo = matches[3]
       components.host = matches[4]
-      components.port = parseInt(matches[5], 10)
+      components.port = Number.parseInt(matches[5], 10)
       components.path = matches[6] || ''
       components.query = matches[7]
       components.fragment = matches[8]
@@ -300,7 +300,7 @@ export function parse(uriString: string, options: URIOptions = {}): URIComponent
       components.scheme = matches[1] || undefined
       components.userinfo = uriString.indexOf('@') !== -1 ? matches[3] : undefined
       components.host = uriString.indexOf('//') !== -1 ? matches[4] : undefined
-      components.port = parseInt(matches[5], 10)
+      components.port = Number.parseInt(matches[5], 10)
       components.path = matches[6] || ''
       components.query = uriString.indexOf('?') !== -1 ? matches[7] : undefined
       components.fragment = uriString.indexOf('#') !== -1 ? matches[8] : undefined

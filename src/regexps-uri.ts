@@ -1,4 +1,4 @@
-import { URIRegExps } from './uri'
+import type { URIRegExps } from './uri'
 import { merge, subexp } from './util'
 
 export function buildExps(isIRI: boolean): URIRegExps {

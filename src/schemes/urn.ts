@@ -1,4 +1,4 @@
-import { URIComponents, URIOptions, URISchemeHandler } from '../uri'
+import type { URIComponents, URIOptions, URISchemeHandler } from '../uri'
 import { SCHEMES, pctEncChar } from '../uri'
 
 export interface URNComponents extends URIComponents {
