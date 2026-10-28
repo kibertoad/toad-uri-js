@@ -1133,3 +1133,59 @@ if (URI.SCHEMES.wss) {
     strictEqual(URI.normalize('wss://example.com:443/foo#hash'), 'wss://example.com/foo')
   })
 }
+
+describe('removeDotSegments (CVE-2026-93690)', () => {
+  // U+2028 (line separator), U+2029 (paragraph separator) and U+000D (\r,
+  // carriage return) are not matched by `.` in JavaScript regexes, and the
+  // previous RDS5 regex only added `\n` back. It therefore produced
+  // an empty match on a path segment starting with one of them, so
+  // removeDotSegments never made progress: it looped forever and grew the
+  // output array without bound (CWE-835). These inputs must terminate and
+  // preserve the (non-dot) segment unchanged.
+  test('terminates on U+2028 / U+2029 / CR segments', () => {
+    strictEqual(URI.removeDotSegments('/\u2028'), '/\u2028', 'U+2028 leading')
+    strictEqual(URI.removeDotSegments('/\u2029'), '/\u2029', 'U+2029 leading')
+    strictEqual(URI.removeDotSegments('/a/\u2028/b'), '/a/\u2028/b', 'U+2028 mid-path')
+    strictEqual(URI.removeDotSegments('\u2028'), '\u2028', 'U+2028 no leading slash')
+    strictEqual(URI.removeDotSegments('/\r'), '/\r', 'CR (U+000D) leading')
+  })
+
+  test('still resolves standard RFC 3986 §5.2.4 dot segments', () => {
+    strictEqual(URI.removeDotSegments('/a/b/c/./../../g'), '/a/g', 'RFC example 1')
+    strictEqual(URI.removeDotSegments('mid/content=5/../6'), 'mid/6', 'RFC example 2')
+    strictEqual(URI.removeDotSegments('/../g'), '/g', 'leading /../')
+  })
+
+  // The loop sees a raw separator (and could hang) only in IRI mode: in URI
+  // mode, parse() and serialize() percent-encode U+2028/U+2029 before
+  // removeDotSegments runs. These public-API cases pin the reachable IRI
+  // path and the URI-mode encoding behavior.
+  test('normalize() terminates on a U+2028 path', () => {
+    strictEqual(
+      URI.normalize('http://example.com/\u2028', { iri: true }),
+      'http://example.com/\u2028',
+    )
+    strictEqual(URI.normalize('http://example.com/\u2028'), 'http://example.com/%E2%80%A8')
+  })
+
+  test('resolve() terminates on U+2028 segments in IRI mode', () => {
+    strictEqual(URI.resolve('http://a/b/', '\u2028', { iri: true }), 'http://a/b/\u2028')
+    strictEqual(URI.resolve('http://a/b/c', '../\u2028x', { iri: true }), 'http://a/\u2028x')
+  })
+})
+
+describe('line terminator truncation (URI_PARSE / URN_PARSE)', () => {
+  // Same root cause as CVE-2026-93690, different symptom: `.`-based groups
+  // in URI_PARSE and URN_PARSE silently dropped everything from the first
+  // raw U+2028/U+2029 onward instead of hanging.
+  test('parse() does not truncate fragments', () => {
+    strictEqual(URI.parse('http://a/b#x\u2028y').fragment, 'x%E2%80%A8y')
+    strictEqual(URI.normalize('http://a/b#x\u2028y'), 'http://a/b#x%E2%80%A8y')
+  })
+
+  test('urn parsing does not truncate the nss', () => {
+    const components = URI.parse('urn:example:a\u2028b', { unicodeSupport: true })
+    strictEqual(components.nid, 'example', 'nid')
+    strictEqual(components.nss, 'a\u2028b', 'nss')
+  })
+})

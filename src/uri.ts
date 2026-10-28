@@ -267,7 +267,7 @@ function _normalizeIPv6(host: string, protocol: URIRegExps): string {
 }
 
 const URI_PARSE =
-  /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#((?:.|\n|\r)*))?/i
+  /^(?:([^:\/?#]+):)?(?:\/\/((?:([^\/?#@]*)@)?(\[[^\/?#\]]+\]|[^\/?#:]*)(?:\:(\d*))?))?([^?#]*)(?:\?([^#]*))?(?:#([\s\S]*))?/i
 const NO_MATCH_IS_UNDEFINED = (<RegExpMatchArray>''.match(/(){0}/))[1] === undefined
 
 export function parse(uriString: string, options: URIOptions = {}): URIComponents {
@@ -307,7 +307,7 @@ export function parse(uriString: string, options: URIOptions = {}): URIComponent
 
       //fix port number
       if (isNaN(components.port)) {
-        components.port = uriString.match(/\/\/(?:.|\n)*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined
+        components.port = uriString.match(/\/\/[\s\S]*\:(?:\/|\?|\#|$)/) ? matches[4] : undefined
       }
     }
 
@@ -409,13 +409,14 @@ function _recomposeAuthority(components: URIComponents, options: URIOptions): st
 const RDS1 = /^\.\.?\//
 const RDS2 = /^\/\.(\/|$)/
 const RDS3 = /^\/\.\.(\/|$)/
-const RDS4 = /^\.\.?$/
-const RDS5 = /^\/?(?:.|\n)*?(?=\/|$)/
+const RDS5 = /^\/?[\s\S]*?(?=\/|$)/
 
 export function removeDotSegments(input: string): string {
   const output: Array<string> = []
 
   while (input.length) {
+    const before = input.length
+
     if (input.match(RDS1)) {
       input = input.replace(RDS1, '')
     } else if (input.match(RDS2)) {
@@ -434,6 +435,10 @@ export function removeDotSegments(input: string): string {
       } else {
         throw new Error('Unexpected dot segment condition')
       }
+    }
+
+    if (input.length >= before) {
+      throw new Error('Unexpected dot segment condition')
     }
   }
 
