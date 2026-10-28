@@ -1,4 +1,4 @@
-import { URIComponents, URIOptions, URISchemeHandler } from '../uri'
+import { URIComponents, URIOptions, type URISchemeHandler } from '../uri'
 import http from './http'
 
 const handler: URISchemeHandler = {

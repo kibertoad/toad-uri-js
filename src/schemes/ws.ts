@@ -1,4 +1,4 @@
-import { URIComponents, URIOptions, URISchemeHandler } from '../uri'
+import type { URIComponents, URIOptions, URISchemeHandler } from '../uri'
 
 export interface WSComponents extends URIComponents {
   resourceName?: string

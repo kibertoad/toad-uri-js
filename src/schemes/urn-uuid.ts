@@ -1,6 +1,6 @@
-import { URIComponents, URIOptions, URISchemeHandler } from '../uri'
+import { URIComponents, type URIOptions, type URISchemeHandler } from '../uri'
 import { SCHEMES } from '../uri'
-import { URNComponents } from './urn'
+import type { URNComponents } from './urn'
 
 export interface UUIDComponents extends URNComponents {
   uuid?: string
