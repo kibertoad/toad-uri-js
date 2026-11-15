@@ -37,6 +37,10 @@ jobs:
       - name: Run Tests
         run: npm run test
 
+      # Builds dist and loads it via plain Node ESM import and CJS require, which Vitest does not exercise
+      - name: Run package import tests
+        run: npm run test:package
+
   automerge:
     needs: build
     runs-on: ubuntu-latest

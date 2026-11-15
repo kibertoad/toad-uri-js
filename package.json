@@ -29,6 +29,7 @@
     "build:dev": "tsc",
     "build:release": "tsup",
     "test": "vitest --coverage",
+    "test:package": "npm run build:release && node tests/package/esm.mjs && node tests/package/cjs.cjs",
     "lint": "biome lint src tests biome.json",
     "lint:fix": "biome check --apply src tests biome.json",
     "prepublishOnly": "npm run build:release",
